@@ -1,54 +1,59 @@
 <template>
-  <side-bar />
+  <sideBar />
   <div
     class="bg-blue-lighten-4 h-100 d-flex justify-space-around align-center flex-column maindash"
   >
     <div class="topBanner d-flex justify-end align-center w-100">
       <div>
-        <v-btn 
-        :disabled="userTypeCheck"
-        class="addDepartment mr-4" prepend-icon="mdi-plus">
-          Add Company
+        <v-btn
+          :disabled="userTypeCheck"
+          class="mr-4 addDepartment"
+          prepend-icon="mdi-plus"
+        >
+          Add Department
           <v-dialog v-model="dialog" activator="parent" width="auto">
             <v-card class="mx-auto" max-width="500" elevation="16">
-              <h1 class="w-100 d-flex justify-center text-orange">Add Company</h1>
+              <h1 class="w-100 d-flex justify-center text-orange">
+                Add Department
+              </h1>
               <v-form @submit.prevent>
                 <v-sheet width="500" class="mx-auto pa-4 ma-4">
-                  <v-text-field
-                    v-model="userName"
-                    label="Username"
-                    :rules="nameRules"
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    :rules="emailRules"
-                  ></v-text-field
-                  ><v-text-field
+                  <v-combobox
                     v-model="companyName"
+                    chips
                     label="Company Name"
-                    :rules="companyNameRules"
-                  ></v-text-field>
+                    :items="item"
+                    variant="solo-inverted"
+                    :rules="selectCompanyRules"
+                  ></v-combobox>
                   <v-text-field
-                    v-model="password"
-                    label="Password"
-                    :rules="passwordRules"
+                    v-model="companyDescription"
+                    label="Description"
+                    :rules="descriptionRules"
                   ></v-text-field>
+                  <v-combobox
+                    v-model="companyDepartment"
+                    chips
+                    label="Select Department"
+                    :items="['Finance', 'HR', 'Dev Ops', 'Frontend Development', 'Backend Development']"
+                    variant="solo-inverted"
+                    :rules="selectDepartmentRules"
+                  ></v-combobox>
                   <v-btn
                     type="submit"
                     @click="setLocalStorageValues"
                     block
                     class="mt-8 bg-blue"
                     prepend-icon="mdi-plus"
-                    >Add Company</v-btn
-                  >
+                    text="Add Department"
+                  ></v-btn>
                 </v-sheet>
                 <v-card-actions>
                   <v-btn
+                    class="cancel"
                     block
                     @click="dialog = false"
                     prepend-icon="mdi-cancel"
-                    class="cancel"
                     >Cancel</v-btn
                   >
                 </v-card-actions>
@@ -59,41 +64,42 @@
       </div>
     </div>
     <v-container>
-      <h1 class="text-orange mb-16">Registered Company List</h1>
-      <v-data-table-server
-        :headers="headers"
-        :items="localStorageData"
-        item-key="id"
-        hide-default-footer
-      >
+      <h1 class="text-orange mb-16">Company Registered Departments</h1>
+      <v-data-table-server :items="localStorageData" item-key="id" hide-default-footer>
         <thead>
           <tr class="bg-blue">
-            <th class="text-left">ID</th>
-            <th class="text-left">Username</th>
-            <th class="text-left">Email</th>
             <th class="text-left">Company Name</th>
-            <th class="text-left">Actions</th>
+            <th class="text-left">Description</th>
+            <th class="text-left">Department</th>
+            <th class="text-left">Action</th>
           </tr>
         </thead>
         <tbody>
           <tr
             v-for="(data, index) in localStorageData"
-            :key="data.userName"
+            :key="data.companyName"
             :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }"
           >
-            <td style="font-size : 15px">{{ data.id }}</td>
-            <td style="font-size : 15px">{{ data.userName }}</td>
-            <td style="font-size : 15px">{{ data.email }}</td>
             <td style="font-size : 15px">{{ data.companyName }}</td>
+            <td style="font-size : 15px">{{ data.descripton }}</td>
+            <td style="font-size : 15px">{{ data.department }}</td>
             <td class="td">
               <v-btn
-                v-if="this.isSuperUser || (this.isNormalUser && this.data.companyName == data.companyName)"
+                v-if="
+                  this.isSuperUser ||
+                  (this.isNormalUser &&
+                    this.data.companyName == data.companyName)
+                "
                 class="ma-2 edit"
                 icon="mdi-lead-pencil"
                 @click="editList(data)"
-                ></v-btn>
+              ></v-btn>
               <v-btn
-                v-if="this.isSuperUser || (this.isNormalUser && this.data.companyName == data.companyName)"
+                v-if="
+                  this.isSuperUser ||
+                  (this.isNormalUser &&
+                    this.data.companyName == data.companyName)
+                "
                 class="ma-2 delete"
                 icon="mdi-delete"
                 @click="deleteList(data.id)"
@@ -152,30 +158,24 @@
 export default {
   data() {
     return {
-      data : [],
-      userTypeCheck : true,
-      isSuperUser : false,
-      isNormalUser : false,
-      editDialog: false, 
+      editDialog: false,
       editedItem: {},
       localStorageData: [],
+      item: [],
+      data : [],
       dialog: false,
-      userName: "",
-      email: "",
       companyName: "",
-      password: "",
+      companyDescription: "",
+      companyDepartment: "",
       image: "",
-      nameRules: [(v) => !!v || "Email is required"],
-      emailRules: [
-        (v) => !!v || "Email is required",
-        (v) => /.+@.+\..+/.test(v) || "Email must be valid",
-      ],
-      companyNameRules: [(v) => !!v || "Company Name is required"],
-      passwordRules: [(v) => !!v <= 8 || "Password is required"],
+      localStorageDataForCompany: "",
+      descriptionRules: [(v) => !!v || "Description is required"],
+      selectCompanyRules: [(v) => !!v || "Company is required"],
+      selectDepartmentRules: [(v) => !!v || "Department is required"],
     };
   },
   mounted() {
-    this.data = JSON.parse(localStorage.getItem("isLoggedIn"));
+     this.data = JSON.parse(localStorage.getItem("isLoggedIn"));
     this.getLocalStorageData();
     if(this.data.userType == 'Super User'){
       this.isSuperUser = true;
@@ -190,11 +190,9 @@ export default {
   methods: {
     setLocalStorageValues() {
       const newData = {
-        id: Date.now(),
-        userName: this.userName,
-        email: this.email,
         companyName: this.companyName,
-        password: this.password,
+        descripton: this.companyDescription,
+        department: this.companyDepartment,
       };
       if (
         this.userName == "" ||
@@ -202,32 +200,41 @@ export default {
         this.companyName == "" ||
         this.password == ""
       ) {
-        console.log("hello");
       } else {
-        let data = JSON.parse(localStorage.getItem("company")) || [];
+        let data = JSON.parse(localStorage.getItem("department")) || [];
         data.push(newData);
-        localStorage.setItem("company", JSON.stringify(data));
-
-        console.log(JSON.stringify(data));
-        this.userName = "";
-        this.email = "";
-        this.companyName = "";
-        this.password = "";
-        this.dialog = false;
+        localStorage.setItem("department", JSON.stringify(data));
       }
+      this.companyName = "";
+      this.companyDescription = "";
+      this.companyDepartment = "";
+      this.dialog = false;
       this.getLocalStorageData();
       this.$forceUpdate();
     },
     getLocalStorageData() {
       for (let i = 0; i < localStorage.length; i++) {
-        this.localStorageData = JSON.parse(localStorage.getItem("company"));
+        this.localStorageData = JSON.parse(localStorage.getItem("department"));
+        console.log(this.localStorageData);
+      }
+      this.localStorageDataForCompany = JSON.parse(
+        localStorage.getItem("company")
+      );
+      for (const data of this.localStorageDataForCompany) {
+        if(this.data.userType == "Super User"){
+          this.item.push(data.companyName);
+        }else{
+          if(this.data.companyName == data.companyName){
+            this.item.push(data.companyName);
+          }
+        }
       }
     },
     deleteList(id) {
       const index = this.localStorageData.findIndex((item) => item.id === id);
       console.log("anda", index);
       this.localStorageData.splice(index, 1);
-      localStorage.setItem("company", JSON.stringify(this.localStorageData));
+      localStorage.setItem("department", JSON.stringify(this.localStorageData));
     },
     editList(item) {
       this.editedItem = { ...item };
@@ -238,20 +245,20 @@ export default {
         (item) => item.id === this.editedItem.id
       );
       this.localStorageData[index] = this.editedItem;
-      localStorage.setItem("company", JSON.stringify(this.localStorageData));
+      localStorage.setItem("department", JSON.stringify(this.localStorageData));
       this.editDialog = false;
     },
   },
 };
 </script>
 
-<style scoped>
-
+<style>
+.custom-label-color .v-label {
+  color: green;
+}
 .odd-row {
     background-color: rgb(250, 221, 168);
-
 }
-
 .edit {
   background-color: #324ad1;
   color: white;
@@ -270,15 +277,8 @@ export default {
   color: red;
   border: 1px solid red;
 }
-.cancel {
-  background-color: white;
-  color: orange;
-  border: 2px solid orange;
-}
-.cancel:hover {
-  background-color: orange;
-  color: white;
-  border: 1px solid orange;
+.td{
+  width: 15%;
 }
 .addDepartment{
       background-color: orange;
@@ -295,5 +295,15 @@ export default {
   background-size: 1200px;
   background-position-x: center;
   background-position-y: 80px;
+}
+.cancel {
+  background-color: white;
+  color: orange;
+  border: 2px solid orange;
+}
+.cancel:hover {
+  background-color: orange;
+  color: white;
+  border: 1px solid orange;
 }
 </style>

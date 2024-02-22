@@ -1,69 +1,47 @@
 <template >
   <side-bar />
-  <div class="bg-blue-lighten-4 h-100">
-    <div class="topBanner d-flex justify-space-between align-center pt-16">
-      <h1 class="ml-5">Company</h1>
-      <div>
-        <v-btn class="bg-blue" prepend-icon="mdi-plus">
-          Add Company
+  <div class="bg-blue-lighten-4 h-100 maindash">
+    <div class="bg-orange-lighten-3 text-white text-h5 d-flex justify-center mb-6">User Details</div>
+     <v-card
+      variant="tonal"
+      class="mx-auto"
+      max-width="400"
+  >
+    <v-img
+      class="align-end text-white"
+      height="500"
+      :src="data.image"
+      cover
+    >
+      <v-card-title>{{this.data.userName}}</v-card-title>
+    </v-img>
 
-          <v-dialog v-model="dialog" activator="parent" width="auto">
-            <v-card class="mx-auto" max-width="500" elevation="16">
-              <h1 class="w-100 d-flex justify-center text-blue">
-                Company Details
-              </h1>
-              <v-form  @submit.prevent>
-                <v-sheet width="500" class="mx-auto pa-4 ma-4">
-                  <v-text-field
-                    v-model="userName"
-                    label="Username"
-                    :rules="nameRules"
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    :rules="emailRules"
-                  ></v-text-field
-                  ><v-text-field
-                    v-model="companyName"
-                    label="Company Name"
-                    :rules="companyNameRules"
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="password"
-                    label="Password"
-                    :rules="passwordRules"
-                  ></v-text-field>
-                  <v-btn
-                    type="submit"
-                    @click="setLocalStorageValues"
-                    block
-                    class="mt-8 bg-blue"
-                    prepend-icon="mdi-plus"
-                    >Add Company</v-btn
-                  >
-                  
-                </v-sheet>
-                <v-card-actions>
-                  <v-btn color="primary" block @click="dialog = false" prepend-icon="mdi-cancel"
-                    >Cancel</v-btn>
-                </v-card-actions>
-              </v-form>
-            </v-card>
-          </v-dialog>
-        </v-btn>
-      </div>
-    </div>
-    <v-card class="bg-grey d-flex justify-center">Nothing to show</v-card>
-    <img :src="image" alt="">
+    <v-card-subtitle class="pt-4 w-100">
+      Type : <h3>{{this.data.userType}} </h3> 
+    </v-card-subtitle>
+
+    <v-card-text>
+      <div>Company : {{this.data.companyName}} </div>
+    </v-card-text>
+     <v-card-actions>
+      <v-btn color="white"
+      class="bg-orange"
+      block
+      append-icon="mdi-window-close">
+        Close
+      </v-btn>
+    </v-card-actions>
+  </v-card>
   </div>
 </template>
 
 <script>
 export default {
   mounted() {
-    const data = localStorage.getItem("image");
-    console.log(data)
+    this.data = JSON.parse(localStorage.getItem("isLoggedIn"));
+    console.log(this.data.isLoggedIn)
+    console.log("on mount",this.$store.state.isLoggedIn)
+    
   },
   data() {
     return {
@@ -73,38 +51,21 @@ export default {
       companyName : "",
       password : "",
       image : "",
+      data : [],
     
-      nameRules: [
-        (v) => !!v || 'Email is required'
-      ],
-      emailRules: [
-        (v) => !!v || 'Email is required',
-        v => /.+@.+\..+/.test(v) || 'Email must be valid',
-      ],
-      companyNameRules: [
-        (v) => !!v || 'Company Name is required',
-      ],
-      passwordRules: [
-        (v) => !!v <= 8 || 'Password is required',
-      ],
     };
   },
-     methods : {
-            setLocalStorageValues(){
-              this.dialog = false;
-                const data = {
-                    userName : this.userName,
-                    email : this.email,
-                    companyName : this.companyName,
-                    password : this.password,
-                }
-          localStorage.setItem(`${this.companyName}`,JSON.stringify(data))
-            console.log(JSON.stringify(data))
-        }
-    },
 };
 </script>
 
 <style >
+.maindash{
+  background-image: url('C:\Users\Haier\Desktop\Programmer force Tasks\Vue.js\crm\src\assets\images\office1.png');
+  background-size: contain;
+  background-size: 1200px;
+  background-position-x: center;
+  background-position-y: 80px;
+}
+ 
 </style>
 

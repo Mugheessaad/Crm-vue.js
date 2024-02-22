@@ -5,15 +5,25 @@
   >
     <div class="topBanner d-flex justify-end align-center w-100">
       <div>
-        <v-btn 
-        :disabled="userTypeCheck"
-        class="addDepartment mr-4" prepend-icon="mdi-plus">
-          Add Company
+        <v-btn
+          :disabled="userTypeCheck"
+          class="mr-4 addDepartment"
+          prepend-icon="mdi-plus"
+        >
+          Add User
           <v-dialog v-model="dialog" activator="parent" width="auto">
             <v-card class="mx-auto" max-width="500" elevation="16">
-              <h1 class="w-100 d-flex justify-center text-orange">Add Company</h1>
+              <h1 class="w-100 d-flex justify-center text-orange">Add User</h1>
               <v-form @submit.prevent>
                 <v-sheet width="500" class="mx-auto pa-4 ma-4">
+                  <v-combobox
+                    v-model="companyName"
+                    chips
+                    label="Company Name"
+                    :items="item"
+                    variant="solo-inverted"
+                    :rules="selectCompanyRules"
+                  ></v-combobox>
                   <v-text-field
                     v-model="userName"
                     label="Username"
@@ -25,9 +35,9 @@
                     :rules="emailRules"
                   ></v-text-field
                   ><v-text-field
-                    v-model="companyName"
-                    label="Company Name"
-                    :rules="companyNameRules"
+                    v-model="phoneNumber"
+                    label="Phone Number"
+                    :rules="phoneNumberRules"
                   ></v-text-field>
                   <v-text-field
                     v-model="password"
@@ -40,15 +50,15 @@
                     block
                     class="mt-8 bg-blue"
                     prepend-icon="mdi-plus"
-                    >Add Company</v-btn
+                    >Add User</v-btn
                   >
                 </v-sheet>
                 <v-card-actions>
                   <v-btn
+                  class="cancel"
                     block
                     @click="dialog = false"
                     prepend-icon="mdi-cancel"
-                    class="cancel"
                     >Cancel</v-btn
                   >
                 </v-card-actions>
@@ -59,7 +69,7 @@
       </div>
     </div>
     <v-container>
-      <h1 class="text-orange mb-16">Registered Company List</h1>
+      <h1 class="text-orange mb-16"> Registered Company Users List</h1>
       <v-data-table-server
         :headers="headers"
         :items="localStorageData"
@@ -72,6 +82,7 @@
             <th class="text-left">Username</th>
             <th class="text-left">Email</th>
             <th class="text-left">Company Name</th>
+            <th class="text-left">phone Number</th>
             <th class="text-left">Actions</th>
           </tr>
         </thead>
@@ -85,15 +96,24 @@
             <td style="font-size : 15px">{{ data.userName }}</td>
             <td style="font-size : 15px">{{ data.email }}</td>
             <td style="font-size : 15px">{{ data.companyName }}</td>
+            <td style="font-size : 15px">{{ data.phoneNumber }}</td>
             <td class="td">
               <v-btn
-                v-if="this.isSuperUser || (this.isNormalUser && this.data.companyName == data.companyName)"
-                class="ma-2 edit"
+                v-if="
+                  this.isSuperUser ||
+                  (this.isNormalUser &&
+                    this.data.companyName == data.companyName)
+                "
+                class="edit"
                 icon="mdi-lead-pencil"
                 @click="editList(data)"
-                ></v-btn>
+              ></v-btn>
               <v-btn
-                v-if="this.isSuperUser || (this.isNormalUser && this.data.companyName == data.companyName)"
+                v-if="
+                  this.isSuperUser ||
+                  (this.isNormalUser &&
+                    this.data.companyName == data.companyName)
+                "
                 class="ma-2 delete"
                 icon="mdi-delete"
                 @click="deleteList(data.id)"
@@ -104,7 +124,7 @@
       </v-data-table-server>
       <v-dialog v-model="editDialog" width="auto">
         <v-card class="mx-auto" max-width="500" elevation="16">
-          <h1 class="w-100 d-flex justify-center text-orange">Edit Company</h1>
+          <h1 class="w-100 d-flex justify-center text-orange">Edit User</h1>
           <v-form @submit.prevent>
             <v-sheet width="500" class="mx-auto pa-4 ma-4">
               <v-text-field
@@ -152,11 +172,10 @@
 export default {
   data() {
     return {
-      data : [],
-      userTypeCheck : true,
-      isSuperUser : false,
-      isNormalUser : false,
-      editDialog: false, 
+      item: [],
+      companyName: "",
+      phoneNumber: "",
+      editDialog: false,
       editedItem: {},
       localStorageData: [],
       dialog: false,
@@ -177,42 +196,45 @@ export default {
   mounted() {
     this.data = JSON.parse(localStorage.getItem("isLoggedIn"));
     this.getLocalStorageData();
-    if(this.data.userType == 'Super User'){
+    if (this.data.userType == "Super User") {
       this.isSuperUser = true;
       this.userTypeCheck = false;
-      console.log("super user")
-    }else{
+      console.log("super user");
+    } else {
       this.isNormalUser = true;
       this.userTypeCheck = true;
-      console.log(this.data.companyName)
+      console.log(this.data.companyName);
     }
   },
   methods: {
     setLocalStorageValues() {
       const newData = {
         id: Date.now(),
+        companyName: this.companyName,
         userName: this.userName,
         email: this.email,
-        companyName: this.companyName,
+        phoneNumber: this.phoneNumber,
         password: this.password,
       };
       if (
         this.userName == "" ||
         this.email == "" ||
         this.companyName == "" ||
-        this.password == ""
+        this.password == "" ||
+        this.phoneNumber == ""
       ) {
         console.log("hello");
       } else {
-        let data = JSON.parse(localStorage.getItem("company")) || [];
+        let data = JSON.parse(localStorage.getItem("Users")) || [];
         data.push(newData);
-        localStorage.setItem("company", JSON.stringify(data));
+        localStorage.setItem("Users", JSON.stringify(data));
 
         console.log(JSON.stringify(data));
         this.userName = "";
         this.email = "";
         this.companyName = "";
         this.password = "";
+        this.phoneNumber = "";
         this.dialog = false;
       }
       this.getLocalStorageData();
@@ -220,14 +242,27 @@ export default {
     },
     getLocalStorageData() {
       for (let i = 0; i < localStorage.length; i++) {
-        this.localStorageData = JSON.parse(localStorage.getItem("company"));
+        this.localStorageData = JSON.parse(localStorage.getItem("Users"));
+        console.log(this.localStorageData);
+      }
+      this.localStorageDataForCompany = JSON.parse(
+        localStorage.getItem("company")
+      );
+      for (const data of this.localStorageDataForCompany) {
+        if (this.data.userType == "Super User") {
+          this.item.push(data.companyName);
+        } else {
+          if (this.data.companyName == data.companyName) {
+            this.item.push(data.companyName);
+          }
+        }
       }
     },
     deleteList(id) {
       const index = this.localStorageData.findIndex((item) => item.id === id);
       console.log("anda", index);
       this.localStorageData.splice(index, 1);
-      localStorage.setItem("company", JSON.stringify(this.localStorageData));
+      localStorage.setItem("Users", JSON.stringify(this.localStorageData));
     },
     editList(item) {
       this.editedItem = { ...item };
@@ -238,7 +273,7 @@ export default {
         (item) => item.id === this.editedItem.id
       );
       this.localStorageData[index] = this.editedItem;
-      localStorage.setItem("company", JSON.stringify(this.localStorageData));
+      localStorage.setItem("Users", JSON.stringify(this.localStorageData));
       this.editDialog = false;
     },
   },
@@ -246,12 +281,9 @@ export default {
 </script>
 
 <style scoped>
-
 .odd-row {
-    background-color: rgb(250, 221, 168);
-
+  background-color: rgb(250, 221, 168);
 }
-
 .edit {
   background-color: #324ad1;
   color: white;
@@ -270,16 +302,10 @@ export default {
   color: red;
   border: 1px solid red;
 }
-.cancel {
-  background-color: white;
-  color: orange;
-  border: 2px solid orange;
+.td {
+  width: 15%;
 }
-.cancel:hover {
-  background-color: orange;
-  color: white;
-  border: 1px solid orange;
-}
+
 .addDepartment{
       background-color: orange;
       color: white;
@@ -295,5 +321,15 @@ export default {
   background-size: 1200px;
   background-position-x: center;
   background-position-y: 80px;
+}
+.cancel {
+  background-color: white;
+  color: orange;
+  border: 2px solid orange;
+}
+.cancel:hover {
+  background-color: orange;
+  color: white;
+  border: 1px solid orange;
 }
 </style>
